@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+	"module": "commonjs",
+	"target": "es6",
+	"sourceMap": true,
+	"noImplicitAny": true,
+	"declaration": true,
+	"outDir": "./dist",
+	"rootDir": "./src",
+	"baseUrl": "./src",
+	"moduleResolution": "node",
+	"typeRoots": [ "lib/typings" ]
+  },
+  "include": [
+	"./src/**/*"
+  ],
+  "exclude": [
+	"./src/public/**/*"
+  ]
+}
