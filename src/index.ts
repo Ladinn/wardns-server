@@ -1,6 +1,6 @@
 import "./lib/env";
-import Nameserver from "./socket/nameserver";
-import Filter from "./socket/filter";
+import Nameserver from "./dns/nameserver";
+import Filter from "./dns/filter";
 
 
 (async () => {
