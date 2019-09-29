@@ -1,9 +1,10 @@
 ///<reference path="../../typings/dns-packet.d.ts" />
 
 import {createSocket, Socket, RemoteInfo} from "dgram";
-import {decode, encode} from "dns-packet";
+import {decode, encode, RECURSION_DESIRED, RECURSION_AVAILABLE } from "dns-packet";
 import {query} from "./upstream-client";
 import Filter from "./filter";
+import {upsertBlocked, upsertClient, upsertQuery} from "../stats/update-database";
 
 export default class Nameserver {
 
@@ -25,29 +26,44 @@ export default class Nameserver {
 		this.socket.on('message', (buffer: Buffer, rinfo: RemoteInfo) => {
 
 			let message = decode(buffer);
+			upsertQuery(message);
+			upsertClient(rinfo);
 
-			let blockedQuestions = message.questions.filter(question => {
-				return this.filter.isBlocked(question.name)
-			});
+			// TODO: check cache for TTL
 
-			if (message.questions.length !== blockedQuestions.length) {
+			query(message).then(response => {
 
-				query(message).then(response => {
-					const data = encode(response);
-					this.socket.send(data, 0, data.length, rinfo.port, rinfo.address, (error, bytes) => {
-						if (error) console.error(error);
-						else {
-							console.log(`Sent ${bytes} bytes to ${rinfo.address}:${rinfo.port}`);
+				let answers: any[] = [];
+
+				response.answers.forEach(answer => {
+					if (this.filter.isBlocked(answer.name)) {
+						if (answer.type === 'A') {
+							upsertBlocked(answer);
+							answer.data = '0.0.0.0';
+							console.log(`Blocked IPv4 request for ${answer.name}`);
 						}
-					});
+						if (answer.type === 'AAAA') {
+							upsertBlocked(answer);
+							answer.data = '::/0';
+							console.log(`Blocked IPv6 request for ${answer.name}`);
+						}
+					}
+					answers.push(answer);
 				});
 
-			} else {
+				const data = encode({
+					...response,
+					answers: answers
+				});
 
-				let blockedDomains = blockedQuestions.map(val => val.name);
-				console.log('blocked request to ' + blockedDomains.join(', '));
+				this.socket.send(data, 0, data.length, rinfo.port, rinfo.address, (error, bytes) => {
+					if (error) console.error(error);
+					else {
+						console.log(`Sent ${bytes} bytes to ${rinfo.address}:${rinfo.port}`);
+					}
+				});
 
-			}
+			});
 
 		});
 	}

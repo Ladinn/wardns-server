@@ -1,4 +1,5 @@
 import "./lib/env";
+import "./lib/mongodb";
 import Nameserver from "./dns/nameserver";
 import Filter from "./dns/filter";
 

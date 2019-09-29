@@ -3,7 +3,7 @@ import { each } from "async";
 import * as ora from "ora";
 
 const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi;
-const DOMAIN_REGEX = /(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/g;
+const DOMAIN_REGEX = /^(?!http).*(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]/gmi;
 
 export default class Filter {
 
@@ -29,6 +29,9 @@ export default class Filter {
 							(response: AxiosResponse) => {
 								let domains = response.data.match(DOMAIN_REGEX);
 								blockedDomains = blockedDomains.concat(domains);
+								if (domains.includes('github.com')) {
+									console.log(url)
+								}
 								loading.text = `Initializing blocked domains: ${++i}/${urls.length}`;
 								callback();
 							}, error => callback(error)
@@ -53,3 +56,4 @@ export default class Filter {
 	}
 
 }
+

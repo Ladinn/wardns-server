@@ -2,3 +2,4 @@
 dist/
 wardns-server.iml
 node_modules/
+.env
