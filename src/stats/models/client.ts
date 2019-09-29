@@ -1,15 +1,15 @@
 import { Document, Schema, Model, model} from "mongoose";
 
-export interface ClientStatModel extends Document {
+export interface ClientModel extends Document {
 	ip: string,
 	queries: number,
 	bytes: number
 }
 
-export const ClientStatSchema: Schema = new Schema({
+export const ClientSchema: Schema = new Schema({
 	ip: { type: String, unique: true, index: true },
 	queries: Number,
 	bytes: Number
 }, { collection: 'clients' });
 
-export const ClientStat: Model<ClientStatModel> = model<ClientStatModel>("ClientStat", ClientStatSchema);
+export const Client: Model<ClientModel> = model<ClientModel>("Client", ClientSchema);

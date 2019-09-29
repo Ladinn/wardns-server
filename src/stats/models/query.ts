@@ -1,6 +1,6 @@
 import { Document, Schema, Model, model} from "mongoose";
 
-export interface QueryStatModel extends Document {
+export interface QueryStat extends Document {
 	name: string,
 	count: {
 		A: number,
@@ -26,7 +26,7 @@ export interface QueryStatModel extends Document {
 	}
 }
 
-export const QueryStatSchema: Schema = new Schema({
+export const QueryStat: Schema = new Schema({
 	name: { type: String, unique: true, index: true },
 	count: {
 		A: Number,
@@ -52,4 +52,4 @@ export const QueryStatSchema: Schema = new Schema({
 	}
 }, { collection: 'queries' });
 
-export const QueryStat: Model<QueryStatModel> = model<QueryStatModel>("QueryStat", QueryStatSchema);
+export const Query: Model<QueryStat> = model<QueryStat>("QueryStat", QueryStat);

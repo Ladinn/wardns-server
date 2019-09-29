@@ -7,7 +7,7 @@ connect(process.env.MONGO_URI, {
 	useCreateIndex: true
 }).then(
 	() => {
-		console.log('Connected to MongoDB server.');
+		console.log('[DB] Connected to MongoDB server.');
 	}, error => {
 		throw error;
 	}

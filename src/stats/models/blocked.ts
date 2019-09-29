@@ -1,6 +1,6 @@
 import { Document, Schema, Model, model} from "mongoose";
 
-export interface BlockedStatModel extends Document {
+export interface BlockedModel extends Document {
 	name: string,
 	count: {
 		A: number,
@@ -8,7 +8,7 @@ export interface BlockedStatModel extends Document {
 	}
 }
 
-export const BlockedStatSchema: Schema = new Schema({
+export const BlockedSchema: Schema = new Schema({
 	name: { type: String, unique: true, index: true },
 	count: {
 		A: Number,
@@ -16,4 +16,4 @@ export const BlockedStatSchema: Schema = new Schema({
 	}
 }, { collection: 'blocked' });
 
-export const BlockedStat: Model<BlockedStatModel> = model<BlockedStatModel>("BlockedStat", BlockedStatSchema);
+export const Blocked: Model<BlockedModel> = model<BlockedModel>("Blocked", BlockedSchema);

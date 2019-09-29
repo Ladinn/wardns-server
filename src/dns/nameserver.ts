@@ -4,7 +4,7 @@ import {createSocket, Socket, RemoteInfo} from "dgram";
 import {decode, encode, RECURSION_DESIRED, RECURSION_AVAILABLE } from "dns-packet";
 import {query} from "./upstream-client";
 import Filter from "./filter";
-import {upsertBlocked, upsertClient, upsertQuery} from "../stats/update-database";
+import {upsertBlocked, upsertClient, upsertQuery, upsertServer} from "../stats/update-database";
 
 export default class Nameserver {
 
@@ -28,6 +28,7 @@ export default class Nameserver {
 			let message = decode(buffer);
 			upsertQuery(message);
 			upsertClient(rinfo);
+			upsertServer(rinfo);
 
 			// TODO: check cache for TTL
 
@@ -40,12 +41,12 @@ export default class Nameserver {
 						if (answer.type === 'A') {
 							upsertBlocked(answer);
 							answer.data = '0.0.0.0';
-							console.log(`Blocked IPv4 request for ${answer.name}`);
+							console.log(`[-] Blocked IPv4 request for '${answer.name}'`);
 						}
 						if (answer.type === 'AAAA') {
 							upsertBlocked(answer);
 							answer.data = '::/0';
-							console.log(`Blocked IPv6 request for ${answer.name}`);
+							console.log(`[-] Blocked IPv6 request for '${answer.name}'`);
 						}
 					}
 					answers.push(answer);
@@ -59,7 +60,7 @@ export default class Nameserver {
 				this.socket.send(data, 0, data.length, rinfo.port, rinfo.address, (error, bytes) => {
 					if (error) console.error(error);
 					else {
-						console.log(`Sent ${bytes} bytes to ${rinfo.address}:${rinfo.port}`);
+						console.log(`[+] Sent ${bytes} bytes to ${rinfo.address}:${rinfo.port}`);
 					}
 				});
 
