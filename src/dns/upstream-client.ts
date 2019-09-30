@@ -53,8 +53,6 @@ export function query(packet: Packet): Promise<Packet> {
 				const client = new Socket();
 				const dest = randomUpstreamAddress();
 
-				upsertUpstream(dest, data.length);
-
 				let response: Buffer = null;
 				let expectedLength: number = 0;
 
@@ -92,10 +90,17 @@ export function query(packet: Packet): Promise<Packet> {
 
 				});
 
+				let isError = false;
+
 				client.on('error', (error) => {
+					isError = true;
 					client.destroy();
-					console.error(`Socket error while communicating with ${dest}: ${error.message}`);
+					console.error(`[NS] Socket error while communicating with ${dest}: ${error.message}`);
 					resolve(query(packet));
+				});
+
+				client.on('end', () => {
+					upsertUpstream(dest, data.length, isError);
 				});
 
 			}

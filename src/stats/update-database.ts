@@ -45,37 +45,19 @@ export function upsertBlocked(answer: Answer) {
 	);
 }
 
-export function upsertClient(rinfo: RemoteInfo) {
-	let count: { [key: string]: number } = {
-		queries: 1,
-		bytes: rinfo.size
-	};
+export function upsertClient(rinfo: RemoteInfo, blockedQueries: number) {
 	Client.findOneAndUpdate(
-		{ ip: rinfo.address }, { $inc: count }, { upsert: true },
-		(error) => {
-			if (error) {
-				if (error.code === 11000) {
-					upsertClient(rinfo);
-				} else {
-					console.error(error);
-				}
-			}
-		}
-	);
-}
-
-export function upsertUpstream(ip?: string, len?: number) {
-	Upstream.findOneAndUpdate(
-		{ ip: ( ip !== undefined ? ip : 'cache' ) }, {
+		{ ip: rinfo.address }, {
 			$inc: {
 				queries: 1,
-				bytes: ( len !== undefined ? len : 0 )
+				bytes: rinfo.size,
+				blockedQueries: blockedQueries
 			}
 		}, { upsert: true },
 		(error) => {
 			if (error) {
 				if (error.code === 11000) {
-					upsertUpstream(ip, len);
+					upsertClient(rinfo, blockedQueries);
 				} else {
 					console.error(error);
 				}
@@ -84,19 +66,41 @@ export function upsertUpstream(ip?: string, len?: number) {
 	);
 }
 
-export function upsertServer(rinfo: RemoteInfo) {
+export function upsertUpstream(ip?: string, len?: number, isError?: boolean) {
+	Upstream.findOneAndUpdate(
+		{ ip: ( ip !== undefined ? ip : 'cache' ) }, {
+			$inc: {
+				queries: 1,
+				bytes: ( len !== undefined ? len : 0 ),
+				numErrors: ( isError ? 1 : 0 )
+			}
+		}, { upsert: true },
+		(error) => {
+			if (error) {
+				if (error.code === 11000) {
+					upsertUpstream(ip, len, isError);
+				} else {
+					console.error(error);
+				}
+			}
+		}
+	);
+}
+
+export function upsertServer(rinfo: RemoteInfo, blockedQueries: number) {
 	Server.findOneAndUpdate(
 		{ host: hostname() },
 		{
 			$inc: {
 				queries: 1,
-				bytes: rinfo.size
+				bytes: rinfo.size,
+				blockedQueries: blockedQueries
 			}
 		}, { upsert: true },
 		(error) => {
 			if (error) {
 				if (error.code === 11000) {
-					upsertServer(rinfo);
+					upsertServer(rinfo, blockedQueries);
 				} else {
 					console.error(error);
 				}
