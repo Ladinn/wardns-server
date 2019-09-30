@@ -26,8 +26,8 @@ export default class Nameserver {
 		this.socket.on('message', (buffer: Buffer, rinfo: RemoteInfo) => {
 
 			let message = decode(buffer);
-			upsertQuery(message);
 
+			upsertQuery(message);
 			query(message).then(response => {
 
 				let answers: any[] = [];

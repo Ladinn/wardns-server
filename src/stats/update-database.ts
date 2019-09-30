@@ -2,12 +2,14 @@
 
 import {Answer, Packet} from "dns-packet";
 import {RemoteInfo} from "dgram";
-import {hostname} from "os";
+import {hostname, loadavg, freemem, totalmem} from "os";
 import {Query} from "./models/query";
 import {Blocked} from "./models/blocked";
 import {Client} from "./models/client";
 import {Upstream} from "./models/upstream";
 import {Server} from "./models/server";
+import {TimeModel} from "./models/time";
+import {updateTimeSeries} from "./time-series";
 
 export function upsertQuery(packet: Packet) {
 	packet.questions.forEach(question => {
@@ -25,6 +27,9 @@ export function upsertQuery(packet: Packet) {
 				}
 			}
 		);
+	});
+	updateTimeSeries({
+		queries: 1
 	});
 }
 
@@ -64,6 +69,10 @@ export function upsertClient(rinfo: RemoteInfo, blockedQueries: number) {
 			}
 		}
 	);
+	updateTimeSeries({
+		bytes: rinfo.size,
+		clients: rinfo.address
+	});
 }
 
 export function upsertUpstream(ip?: string, len?: number, isError?: boolean) {
@@ -85,6 +94,9 @@ export function upsertUpstream(ip?: string, len?: number, isError?: boolean) {
 			}
 		}
 	);
+	updateTimeSeries({
+		upstreamErrors: ( isError ? 1 : 0 )
+	});
 }
 
 export function upsertServer(rinfo: RemoteInfo, blockedQueries: number) {
@@ -106,5 +118,8 @@ export function upsertServer(rinfo: RemoteInfo, blockedQueries: number) {
 				}
 			}
 		}
-	)
+	);
+	updateTimeSeries({
+		blockedQueries: blockedQueries
+	});
 }

@@ -99,7 +99,7 @@ export function query(packet: Packet): Promise<Packet> {
 					resolve(query(packet));
 				});
 
-				client.on('end', () => {
+				client.on('close', () => {
 					upsertUpstream(dest, data.length, isError);
 				});
 
