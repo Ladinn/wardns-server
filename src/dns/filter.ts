@@ -15,35 +15,35 @@ export default class Filter {
 	static initialize(): Promise<Filter> {
 		return new Promise((resolve, reject) => {
 			let blockedDomains: string[] = [];
-			axios({
-				method: 'get',
-				url: process.env.BLOCKED_LIST
-			}).then(
-				(response: AxiosResponse) => {
-					let urls: string[] = response.data.match(URL_REGEX);
-					let i = 0;
-					each(urls, (url, callback) => {
-						axios.get(url).then(
-							(response: AxiosResponse) => {
-								let domains = response.data.match(DOMAIN_REGEX);
-								blockedDomains = blockedDomains.concat(domains);
-								if (domains.includes('github.com')) {
-									console.log(url)
-								}
-								callback();
-							}, error => callback(error)
-						);
-					}, (error) => {
-						if (error) {
-							console.error('Error while initializing blocked domains:');
-							console.error(error);
-						}
-						console.log(`[NS] Loaded ${blockedDomains.length} domains into memory.`);
-						resolve(new Filter(blockedDomains));
-					});
-				},
-				reject
-			);
+			let blockedLists = process.env.BLOCKED_LISTS.split(',');
+			console.log(`[NS] Reading blocked domains from ${blockedLists.length} lists.`);
+			each(blockedLists, (listUrl, callback) => {
+				axios({
+					method: 'get',
+					url: listUrl
+				}).then(
+					(response: AxiosResponse) => {
+						let urls: string[] = response.data.match(URL_REGEX);
+						each(urls, (url, callback) => {
+							axios.get(url).then(
+								(response: AxiosResponse) => {
+									let domains = response.data.match(DOMAIN_REGEX);
+									blockedDomains = blockedDomains.concat(domains);
+									callback();
+								}, error => callback(error)
+							);
+						}, callback);
+					},
+					reject
+				);
+			}, (error) => {
+				if (error) {
+					console.error('Error while initializing blocked domains:');
+					console.error(error);
+				}
+				console.log(`[NS] Loaded ${blockedDomains.length} domains into memory.`);
+				resolve(new Filter(blockedDomains));
+			});
 		});
 	}
 

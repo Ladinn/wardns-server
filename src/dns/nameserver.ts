@@ -5,11 +5,14 @@ import {decode, encode, RECURSION_DESIRED, RECURSION_AVAILABLE } from "dns-packe
 import {query} from "./upstream-client";
 import Filter from "./filter";
 import {upsertBlocked, upsertClient, upsertQuery, upsertServer} from "../stats/update-database";
+import {networkInterfaces} from "os";
 
 export default class Nameserver {
 
 	private socket: Socket;
 	private filter: Filter;
+
+	readonly addr: string;
 
 	constructor(filter: Filter) {
 		this.filter = filter;
@@ -17,11 +20,12 @@ export default class Nameserver {
 		this.socket.addListener('error', error => {
 			console.error(error);
 		});
+		this.addr = networkInterfaces()["eth0"][0].address;
 	}
 
 	start() {
-		this.socket.bind(+process.env.NS_PORT, process.env.NS_HOST, () => {
-			console.log(`[NS] DNS server listening on ${process.env.NS_HOST}:${process.env.NS_PORT}.`);
+		this.socket.bind(+process.env.NS_PORT, this.addr, () => {
+			console.log(`[NS] DNS server listening on ${this.addr}:${process.env.NS_PORT}.`);
 		});
 		this.socket.on('message', (buffer: Buffer, rinfo: RemoteInfo) => {
 
