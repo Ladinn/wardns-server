@@ -6,7 +6,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "async": "^3.1.0",
+    "async": "^3.2.2",
     "axios": "^0.19.0",
     "dns-packet": "^5.2.1",
     "dotenv": "^8.1.0",
